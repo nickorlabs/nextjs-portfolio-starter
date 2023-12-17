@@ -1,0 +1,163 @@
+---
+title: ATTACK SCENARIO Huggingface.co
+date: 2023/09/07
+description: User Email Enumeration and Open Redirect against https://huggingface.co 
+tag: exploit, ai, cybersecurity, open redirect, user enumeration
+author: [REDACTED]
+---
+import Image from 'next/image'
+
+
+
+Huggingface, a leader in the Artificial Intelligence / Machine Learning space, provides development tools that researchers use to refine data sets, models etc. Our security research team came across a few interesting findings – two of which we will be sharing today. Two of the vulnerabilities affecting https://huggingface.co which are still present as of today, September 5th, 2023. Individually the two findings seem to be of minimal concern, however the danger they pose when chained together is quickly magnified.  
+
+# ATTACK SCENARIO: User Email Enumeration and Open Redirect 
+
+## Vulnerability 1. User Email Enumeration: 
+
+Using the password reset function, it is possible to identify valid from invalid users by requesting a password reset for the desired account(s).   
+
+
+
+In the first example we will attempt to change a user’s password, in this case user@example.com. 
+
+<Image
+  src="/images/hf1/hf1.png"
+  alt="hf1"
+  width={600}
+  height={600}
+  priority
+  className="next-image"
+/>
+
+As you can see, this user does not exist: 
+
+<Image
+  src="/images/hf1/hf2.png"
+  alt="hf2"
+  width={600}
+  height={600}
+  priority
+  className="next-image"
+/>
+
+
+Now, let use our test user, ‘shruggingfaceco@gmail.com’ 
+
+<Image
+  src="/images/hf1/hf3.png"
+  alt="hf3"
+  width={600}
+  height={600}
+  priority
+  className="next-image"
+/>
+
+
+As you can see, we receive a much different message: 
+
+<Image
+  src="/images/hf1/hf4.png"
+  alt="hf4"
+  width={600}
+  height={600}
+  priority
+  className="next-image"
+/>
+
+
+As we can see, we are getting sensitive information so the follow CWEs are present: 
+
+[CWE-200: Exposure of Sensitive Information to an Unauthorized Actor](https://cwe.mitre.org/data/definitions/200.html)
+
+[CWE-209: Generation of Error Message Containing Sensitive Information](https://cwe.mitre.org/data/definitions/209.html)
+
+Now that we have our target selected, we can send a targeted spear-phishing email to the valid account ‘shruggingfaceco@gmail.com’ 
+
+## Vulnerability 2. Open Redirect: 
+
+The next finding we have is an Open Redirect.  An Open Redirect vulnerability will make it possible for an attacker to redirect a user to a malicious site.  In our example we user the following command: 
+
+Curl https://huggingface.com//orlabs.tech/ -v   
+
+<Image
+  src="/images/hf1/hf5.png"
+  alt="hf5"
+  width={600}
+  height={600}
+  priority
+  className="next-image"
+/>
+
+
+As you can see from the output, it first connects to huggingface.co, then redirects us to orlabs.tech. 
+
+This weakness here can be categorized from CWE as the following: 
+
+[CWE-601: URL Redirection to Untrusted Site ('Open Redirect')](https://cwe.mitre.org/data/definitions/601.html)
+
+## Putting it all together
+
+We will combine these two vulnerabilities to obtain valid login usernames, we can then focus our efforts on known users with valid credentials.  In our scenario, we will craft an email to our victim, ‘shruggingfaceco@gmail.com’  
+
+The email could look as follows: 
+
+There has been a security breach and some passwords should be compromised. To determine if your account was compromised click the link below and login. 
+
+[https://huggingface.co/login](https://huggingface.co//shruggingface.co/login/) 
+
+If you can log in successfully, you have nothing to worry about! If you are not, just click reset password and we will send you a new link right away! 
+
+<Image
+  src="/images/hf1/hf6.png"
+  alt="hf6"
+
+  width={600}
+  height={50}
+
+  priority
+  className="next-image"
+/>
+
+
+Our victim, would click the link, and be redirected to 
+
+<Image
+  src="/images/hf1/hf7.png"
+  alt="hf7"
+  width={400}
+  height={45}
+  priority
+  className="next-image"
+/>
+
+
+And be presented with a cloned login page as follows: 
+
+<Image
+  src="/images/hf1/hf8.png"
+  alt="hf8"
+  width={500}
+  height={500}
+  priority
+  className="next-image"
+/>
+
+
+The victim, once they had entered their email and password, the attacker site would store the username and password; and forward the user login to huggingface.co, giving the user the impression that their account was NOT compromised. 
+
+<Image
+  src="/images/hf1/hf9.png"
+  alt="hf9"
+  width={250}
+  height={800}
+  priority
+  className="next-image"
+/>
+
+
+It would not be difficult to target a particular company or organization accessing publicly available data that includes email addresses to create targeted email lists. These lists could then be used to create a list for enumeration with comparatively little effort.  
+
+While both vulnerabilities, individually, would both be viewed as Medium findings, combining them, we can gain unauthorized access to Huggingface data.  
+
+Do you think your model and training data are safe? What do you think of this?  Which part is most concerning to you?  With everything that’s at stake we feel we should all reach out to Huggingface and get this fixed!

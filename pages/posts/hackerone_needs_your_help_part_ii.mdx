@@ -1,0 +1,107 @@
+---
+title: HackerOne NEEDS YOUR HELP!!! PART Deux!
+date: 2023/10/11
+description: HackerOne needs to save the Hackeronies!! The second installment!!!
+tag: bug bounty, private bug bounty, hacker one, hackerone
+author: [REDACTED]
+---
+import Image from 'next/image'
+
+# Previously on!!!!!
+
+So to recap, in my last blog post, we talked about HackerOne needing YOUR HELP!!  Remember only you can help them make the world a better place!!  If you missed part 1, find it [here](../posts/hackerone_needs_your_help_part_i)
+
+We shared data we found as part of an information disclosure vulnerability we found against hackerone.com!
+
+In case you didn't find the data [here](https://demo.storj-ipfs.com/ipfs/QmTHDtV7Hs4M4Hw76fAXucgvdyCyWCc4hfh6b5yRixtdMu) in an easy to find location.
+
+# Background
+
+So as mentioned in prior blog posts, we found some vulnerabilities against huggingface.co, including an information disclosure vulnerability similar to the finding here!
+
+## FINDING:  INFORMATION DISCLOSURE
+## SEVERITY: <font color='orange'>Medium CVSS v3 ~ 6.1</font>
+## IMPACT:   LEAKAGE OF PRIVATE BUG BOUNTIES
+## BOUNTY:   <font color='red'>$0.00</font> (Does not qualify for bug bounty)
+
+### DETAILS:
+Currently, due to the way HackerOne's website replies to client requests, it is possible to identify valid private bug bounty programs versus other existing, non-existent programs, 
+by inspecting the redirect location header.  This may lead to the disclosure of customers who utilize HackerOne's service, who may not want that information to be publicly known!
+
+### FINDING EXPLAINED FURTHER
+To discover who may be enrolled in HackerONe's Private Bug Bounty Program, simply perform the sample request below and inspect the results, headers, and redirect location!
+
+```
+curl -k https://hackerone.com/some_company -I
+```
+
+## INFORMATION DISCLOSURE
+### Private Bug Bounty 
+
+First, let's look at a KNOWN public bug bounty program:  GM
+
+https://www.hackerone.com/gm
+
+<Image
+  src="/images/ho2/hod1.png"
+  alt="hod1"
+  width={537}
+  height={73}
+  priority
+  className="next-image"
+/>
+
+If we look at the above example, we see a HTTP response of 200, which means the request was successful.  In other words, there is a public bug county.
+
+Now, that we have understood what we will see for a public bug bounty, let's look at huggingface.co.  If you remember in one of our other blogs, we already reported some findings to Hugging Face, which we were asked to report them via their HackerOne Private Bug Bounty. In the next example, we will look at hugging_face, due to the fact we are aware this is a valid example.
+
+<Image
+  src="/images/ho2/hod2.png"
+  alt="hod2"
+  width={592}
+  height={113}
+  priority
+  className="next-image"
+/>
+
+As you can see, we are redirected, HTTP response 302.  If you see the location is https://hackerone.com/users/sign_in.  This indicates that you must be logged in and invited to the private bug bounty program.  Since we already know there is a program with that name, this is valid.
+
+So, since we know Hugging Face's url would be /hugging_face, let's attempt /huggingface, to see what response we get.
+
+<Image
+  src="/images/ho2/hod3.png"
+  alt="hod3"
+  width={597}
+  height={90}
+  priority
+  className="next-image"
+/>
+
+Here you see we are presented with a HTTP response 404, Page not found!  So there is no bug bounty program by that name.
+
+# Evidence
+
+<Image
+  src="/images/ho2/hod4.png"
+  alt="hod4"
+  width={1019}
+  height={1006}
+  priority
+  className="next-image"
+/>
+
+Let's discuss this response.  
+
+First, this was their second response.  In their first response, they refused our report, asking us to resubmit it via their report writeup too.
+
+Next, @w00dr0w, w00dy for short per your HackerOne profile, but sorry - we don't know each other, so not sure why our response is addressed to you.
+
+They seem to not know/understand their clients' digital assets and what is "in-scope".
+
+Ultimately, after working with them for several weeks, they closed our ticket as all informational/not valid security findings.
+
+Also, I think it is important to clarify, that we never reported our findings out of a desire to make money.  We are using their tools so affected by these vulnerabilities.
+
+In Part III, we will discuss how you can apply this knowledge by creating a script to automate this so you too can create your own list of private bug bounties managed by HackerOne!!
+
+<img src="https://media.giphy.com/media/14kdiJUblbWBXy/giphy.gif"/>

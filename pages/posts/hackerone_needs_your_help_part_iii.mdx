@@ -1,0 +1,135 @@
+---
+title: HackerOne NEEDS YOUR HELP!!!33 1⁄3!
+date: 2023/10/31
+description: HackerOne needs to save the Hackeronies!! The final, well you know what the next word should be...
+tag: bug bounty, private bug bounty, hacker one, hackerone, hacktoberfest
+author: Dr. Jones
+---
+import Image from 'next/image'
+
+# THE CONCLUSION 
+
+
+<p align="center">
+<Image 
+  src="/images/ho3/hod1.jpg"
+  alt="hod1" 
+  class="center"
+  width={259} 
+  height={383}
+  priority 
+  className="next-image" 
+/> 
+</p>
+
+So, now that we understand the information disclosed and how we were able to identify this, let's put this knowledge together and make our own script create an up to date list, whenever you need.
+
+Keep in mind, you are limiting your requests, to try and keep from tripping on the possible rate limiting they might have implemented.  Thus, when we ran this for testing, it took 4 - 5 weeks to complete.
+
+Our input list was very extensive, so your mileage may vary!!
+
+# The CODE
+
+```
+#!/usr/bin/python3
+import requests
+import json
+import time
+import sys
+
+content_type = {'Content-Type': 'application/json'}
+user_agent = {'User-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.36 Chrome/36.0.1985.125 Safari/537.36'}
+
+inputfile = open("names.txt", "r")
+all_names = inputfile.readlines()
+all_names = set(all_names)
+inputfile.close()
+
+filename1 =  "H1-private-results.txt"
+
+for company in all_names:
+    company = company.strip()
+    company = company.lower()
+    try:
+        url = "https://hackerone.com/" + company
+        response = requests.get(url, headers=user_agent, allow_redirects=False)
+        code = response.status_code
+        code_str = str(code)
+        if code == 302:
+            location = response.headers['location']
+            if location == 'https://hackerone.com/users/sign_in':
+                print ("Private Bounty Found!" + url + "\n")
+                with open (filename1, "a") as outputfile:
+                    output = url + "\n"
+                    outputfile.write(output)
+        else:
+            print (company + " :: " + code_str)
+    except:
+        pass
+    time.sleep(.5)
+```
+
+# Breaking it down!
+
+Thanks for reading on!  You get a gold [star!](https://demo.storj-ipfs.com/ipfs//QmfXBYt9pZZUikJ686Qub1P6jr7Cm6tAeyiodDch6Y4LTu?filename=orlabs_badge_2023.png)
+
+```
+#!/usr/bin/python3
+import requests
+import json
+import time
+import sys
+```
+
+Here are importing requests, json, time, and sys.
+
+Next we need to set the HTTP Header, as some websites will not respond unless you set at least the user_agent.  Additionally, we will request the data be returned in JSON format, as it will make it easier to parse.
+
+```
+content_type = {'Content-Type': 'application/json'}
+user_agent = {'User-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.36 Chrome/36.0.1985.125 Safari/537.36'}
+```
+
+Next we will input the data via a text file, "names.txt," however you can name it anything you would like.
+
+```
+inputfile = open("names.txt", "r")
+all_names = inputfile.readlines()
+all_names = set(all_names)
+inputfile.close()
+
+filename1 =  "H1-private-results.txt"
+```
+
+This file will list every possible private bug bounty program name, one per line, and will read them into all_names.  Also, if you see in the above, we will be creating a file "H1-private-results.txt," to safe the result that meet our conditions.
+
+The final section we will discuss is the request for each possible private bug bounty program.  `url = "https://hackerone.com/" + company` will be requested for each, and our script will look at the HTTP Response to make a determination.
+
+```
+for company in all_names:
+    company = company.strip()
+    company = company.lower()
+    try:
+        url = "https://hackerone.com/" + company
+        response = requests.get(url, headers=user_agent, allow_redirects=False)
+        code = response.status_code
+        code_str = str(code)
+        if code == 302:
+            location = response.headers['location']
+            if location == 'https://hackerone.com/users/sign_in':
+                print ("Private Bounty Found!" + url + "\n")
+                with open (filename1, "a") as outputfile:
+                    output = url + "\n"
+                    outputfile.write(output)
+        else:
+            print (company + " :: " + code_str)
+    except:
+        pass
+    time.sleep(.5)
+```
+
+If you remember in previous posts, if the response is a 302, redirect, and location for the redirect is https://hackerone.com/users/sign_in, you found the PRIZE!!  The script will then store the details in the file.  If it is not a 302, it will then capture the name and the HTTP Response, and store it as well.  Then, they most likely will have some form of rate limiting, so we have the script wait between each test.
+
+We used over 1 million possible names in our test, what lists do you think you will use to compile your names?
+
+Once you have created your own list, go ahead and share it with others, after you've picked over list!
